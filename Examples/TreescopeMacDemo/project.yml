@@ -1,0 +1,30 @@
+name: TreescopeMacDemo
+options:
+  bundleIdPrefix: com.treescope
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+
+packages:
+  Treescope:
+    # Local SwiftPM package at the repo root.
+    path: ../..
+
+targets:
+  TreescopeMacDemo:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources
+    dependencies:
+      - package: Treescope
+        product: TreescopeServer
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.treescope.macdemo
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        CODE_SIGNING_ALLOWED: NO
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.developer-tools

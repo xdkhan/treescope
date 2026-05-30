@@ -1,0 +1,14 @@
+.DS_Store
+.build/
+.swiftpm/
+*.xcodeproj
+DerivedData/
+*.xcworkspace
+Package.resolved
+xcuserdata/
+.netrc
+
+# Web viewer build artifacts (the embedded viewer.html is committed; these aren't)
+Web/node_modules/
+Web/dist/
+Web/*.tsbuildinfo
