@@ -28,7 +28,9 @@ protocol LiveReadableProperty {
 extension State: LiveReadableProperty { var liveWrappedValue: Any { wrappedValue } }
 extension Binding: LiveReadableProperty { var liveWrappedValue: Any { wrappedValue } }
 extension ObservedObject: LiveReadableProperty { var liveWrappedValue: Any { wrappedValue } }
+@available(iOS 14, macOS 11, tvOS 14, *)
 extension AppStorage: LiveReadableProperty { var liveWrappedValue: Any { wrappedValue } }
+@available(iOS 14, macOS 11, tvOS 14, *)
 extension ScaledMetric: LiveReadableProperty { var liveWrappedValue: Any { wrappedValue } }
 
 enum LiveProperty {

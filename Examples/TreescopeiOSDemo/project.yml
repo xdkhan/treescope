@@ -2,7 +2,7 @@ name: TreescopeiOSDemo
 options:
   bundleIdPrefix: com.treescope
   deploymentTarget:
-    iOS: "16.0"
+    iOS: "13.0"
   createIntermediateGroups: true
 
 packages:

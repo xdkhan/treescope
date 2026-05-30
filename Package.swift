@@ -5,8 +5,8 @@ let package = Package(
     name: "Treescope",
     platforms: [
         .macOS(.v13),
-        .iOS(.v16),
-        .tvOS(.v16),
+        .iOS(.v13),
+        .tvOS(.v13),
     ],
     products: [
         // Shared wire/data model. Pure Foundation, every platform.

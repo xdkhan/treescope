@@ -12,3 +12,4 @@ xcuserdata/
 Web/node_modules/
 Web/dist/
 Web/*.tsbuildinfo
+build-ios13/
