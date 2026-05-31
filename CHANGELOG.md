@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.1 — 2026-05-30
+
 - **Fix: live-editing numeric properties with whole numbers.** Setting a `Double`-backed property
   (`alpha`/`alphaValue`, `opacity`, `cornerRadius`, `borderWidth`) to a whole number such as `12`
   was rejected, because the value arrived as `.integer` while the handlers matched only `.number`.
