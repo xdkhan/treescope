@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.1.1-ios13.1 — 2026-06-01
+
+- **Fork: lower iOS deployment target to iOS 13.** This fork keeps the runtime inspector available
+  for apps that still support iOS 13 while retaining the same `TreescopeServer` Swift package
+  product.
+- **Docs: document the forked package URL and iOS 13 support.** The quick-start examples now point
+  at `xdkhan/treescope` and use the `v0.1.1-ios13.1` tag so SPM resolves a tagged version with the
+  iOS 13 package manifest without colliding with upstream semantic versions.
+
 ## 0.1.1 — 2026-05-30
 
 - **Fix: live-editing numeric properties with whole numbers.** Setting a `Double`-backed property

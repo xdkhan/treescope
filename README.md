@@ -120,7 +120,7 @@ none is needed.)
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/everettjf/treescope.git", from: "0.1.0"),
+    .package(url: "https://github.com/xdkhan/treescope.git", exact: "0.1.1-ios13.1"),
 ],
 targets: [
     .target(name: "MyApp", dependencies: [
@@ -130,8 +130,9 @@ targets: [
 ```
 
 **Xcode** — *File ▸ Add Package Dependencies…*, paste
-`https://github.com/everettjf/treescope.git`, and add the **TreescopeServer** library
-to your app target. (Supports macOS 13+, iOS 16+, tvOS 16+.)
+`https://github.com/xdkhan/treescope.git`, select `Exact Version` with `0.1.1-ios13.1`, and add
+the **TreescopeServer** library to your app target. (This fork supports macOS 13+, iOS 13+,
+tvOS 13+.)
 
 Start it once, early, guarded for Debug:
 
