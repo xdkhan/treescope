@@ -34,6 +34,7 @@ public enum ClientMessage: Sendable {
     case fetchHierarchy(HierarchyOptions)
     case fetchSnapshot(nodeID: String, scale: Double)
     case setAttribute(nodeID: String, keyPath: String, value: AttributeValue)
+    case performUIKitCollectionAction(UIKitCollectionAction)
     case highlight(nodeID: String?)
     case ping
 }
@@ -44,6 +45,7 @@ public enum ServerMessage: Sendable {
     case hierarchy(HierarchySnapshot)
     case snapshot(SnapshotImage)
     case attributeResult(nodeID: String, keyPath: String, success: Bool, message: String?)
+    case uiKitCollectionActionResult(UIKitCollectionActionResult)
     case event(ServerEvent)
     case error(code: Int, message: String)
     case pong
@@ -87,7 +89,7 @@ public struct ServerEnvelope: Codable, Sendable {
 // client free of Swift's synthesized `{"case": {"_0": ...}}` shape.
 
 extension ClientMessage: Codable {
-    private enum CodingKeys: String, CodingKey { case t, client, options, nodeID, scale, keyPath, value }
+    private enum CodingKeys: String, CodingKey { case t, client, options, nodeID, scale, keyPath, value, action }
 
     public func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
@@ -101,6 +103,9 @@ extension ClientMessage: Codable {
         case .setAttribute(let nodeID, let keyPath, let value):
             try c.encode("setAttribute", forKey: .t)
             try c.encode(nodeID, forKey: .nodeID); try c.encode(keyPath, forKey: .keyPath); try c.encode(value, forKey: .value)
+        case .performUIKitCollectionAction(let action):
+            try c.encode("performUIKitCollectionAction", forKey: .t)
+            try c.encode(action, forKey: .action)
         case .highlight(let nodeID):
             try c.encode("highlight", forKey: .t); try c.encodeIfPresent(nodeID, forKey: .nodeID)
         case .ping:
@@ -118,6 +123,8 @@ extension ClientMessage: Codable {
         case "setAttribute":   self = .setAttribute(nodeID: try c.decode(String.self, forKey: .nodeID),
                                                     keyPath: try c.decode(String.self, forKey: .keyPath),
                                                     value: try c.decode(AttributeValue.self, forKey: .value))
+        case "performUIKitCollectionAction":
+            self = .performUIKitCollectionAction(try c.decode(UIKitCollectionAction.self, forKey: .action))
         case "highlight":      self = .highlight(nodeID: try c.decodeIfPresent(String.self, forKey: .nodeID))
         case "ping":           self = .ping
         case let other:
@@ -128,7 +135,7 @@ extension ClientMessage: Codable {
 
 extension ServerMessage: Codable {
     private enum CodingKeys: String, CodingKey {
-        case t, info, snapshot, image, nodeID, keyPath, success, message, event, code
+        case t, info, snapshot, image, nodeID, keyPath, success, message, result, event, code
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -144,6 +151,9 @@ extension ServerMessage: Codable {
             try c.encode("attributeResult", forKey: .t)
             try c.encode(nodeID, forKey: .nodeID); try c.encode(keyPath, forKey: .keyPath)
             try c.encode(success, forKey: .success); try c.encodeIfPresent(message, forKey: .message)
+        case .uiKitCollectionActionResult(let result):
+            try c.encode("uiKitCollectionActionResult", forKey: .t)
+            try c.encode(result, forKey: .result)
         case .event(let event):
             try c.encode("event", forKey: .t); try c.encode(event, forKey: .event)
         case .error(let code, let message):
@@ -164,6 +174,8 @@ extension ServerMessage: Codable {
                                     keyPath: try c.decode(String.self, forKey: .keyPath),
                                     success: try c.decode(Bool.self, forKey: .success),
                                     message: try c.decodeIfPresent(String.self, forKey: .message))
+        case "uiKitCollectionActionResult":
+            self = .uiKitCollectionActionResult(try c.decode(UIKitCollectionActionResult.self, forKey: .result))
         case "event":        self = .event(try c.decode(ServerEvent.self, forKey: .event))
         case "error":        self = .error(code: try c.decode(Int.self, forKey: .code),
                                            message: try c.decode(String.self, forKey: .message))

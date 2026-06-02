@@ -124,6 +124,8 @@ final class MessageCodableTests: XCTestCase {
             .fetchHierarchy(.default),
             .fetchSnapshot(nodeID: "abc", scale: 2),
             .setAttribute(nodeID: "abc", keyPath: "alpha", value: .number(0.5)),
+            .performUIKitCollectionAction(.query(identifier: "collection")),
+            .performUIKitCollectionAction(.scroll(identifier: "collection", section: 1, item: 2, position: .centeredVertically)),
             .highlight(nodeID: "abc"),
             .highlight(nodeID: nil),
             .ping,
@@ -172,6 +174,46 @@ final class MessageCodableTests: XCTestCase {
         } else {
             XCTFail("expected snapshot")
         }
+    }
+
+    func testUIKitCollectionActionRoundTrip() throws {
+        let action = UIKitCollectionAction.scroll(identifier: "collection",
+                                                 section: 2,
+                                                 item: 7,
+                                                 position: .centeredHorizontally)
+        let envelope = ClientEnvelope(id: 11, message: .performUIKitCollectionAction(action))
+        let data = try JSONEncoder.treescope.encode(envelope)
+        let back = try JSONDecoder.treescope.decode(ClientEnvelope.self, from: data)
+
+        guard case .performUIKitCollectionAction(let decoded) = back.message else {
+            return XCTFail("expected collection action")
+        }
+        XCTAssertEqual(decoded, action)
+    }
+
+    func testUIKitCollectionActionResultRoundTrip() throws {
+        let result = UIKitCollectionActionResult(status: "scrolled",
+                                                 identifier: "collection",
+                                                 section: 0,
+                                                 item: 4,
+                                                 sectionCount: 1,
+                                                 itemCount: 12,
+                                                 visibleItems: [
+                                                    UIKitCollectionItem(section: 0, item: 3),
+                                                    UIKitCollectionItem(section: 0, item: 4),
+                                                 ],
+                                                 contentOffset: Point(x: 0, y: 128),
+                                                 contentSize: Size(width: 320, height: 1000),
+                                                 visibleCollectionIdentifiers: ["collection"],
+                                                 message: nil)
+        let envelope = ServerEnvelope(id: 12, message: .uiKitCollectionActionResult(result))
+        let data = try JSONEncoder.treescope.encode(envelope)
+        let back = try JSONDecoder.treescope.decode(ServerEnvelope.self, from: data)
+
+        guard case .uiKitCollectionActionResult(let decoded) = back.message else {
+            return XCTFail("expected collection action result")
+        }
+        XCTAssertEqual(decoded, result)
     }
 }
 

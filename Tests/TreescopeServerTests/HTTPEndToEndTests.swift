@@ -48,6 +48,12 @@ final class HTTPEndToEndTests: XCTestCase {
                                                 pixelSize: Size(width: 1, height: 1), data: png)))
             case .setAttribute(let nodeID, let keyPath, _):
                 respond(.attributeResult(nodeID: nodeID, keyPath: keyPath, success: true, message: nil))
+            case .performUIKitCollectionAction(let action):
+                switch action {
+                case .query(let identifier), .scroll(let identifier, _, _, _):
+                    respond(.uiKitCollectionActionResult(UIKitCollectionActionResult(status: "found",
+                                                                                     identifier: identifier)))
+                }
             case .highlight(let nodeID):
                 respond(.attributeResult(nodeID: nodeID ?? "", keyPath: "highlight", success: true, message: nil))
             }
@@ -116,6 +122,22 @@ final class HTTPEndToEndTests: XCTestCase {
         let result = try await request(task, id: 2, .setAttribute(nodeID: "root", keyPath: "alpha", value: .number(0.5)))
         guard case .attributeResult(_, _, let success, _) = result else { return XCTFail("expected result") }
         XCTAssertTrue(success)
+    }
+
+    func testWebSocketUIKitCollectionAction() async throws {
+        let (server, port) = try startServer()
+        defer { server.stop() }
+        let task = openSocket(port: port)
+        defer { task.cancel(with: .goingAway, reason: nil) }
+
+        let response = try await request(task,
+                                         id: 3,
+                                         .performUIKitCollectionAction(.query(identifier: "collection")))
+        guard case .uiKitCollectionActionResult(let result) = response else {
+            return XCTFail("expected collection action result")
+        }
+        XCTAssertEqual(result.status, "found")
+        XCTAssertEqual(result.identifier, "collection")
     }
 
     func testViewerHTMLRoute() async throws {

@@ -122,6 +122,11 @@ public final class Treescope {
                 respond(.attributeResult(nodeID: nodeID, keyPath: keyPath, success: ok, message: msg))
             }
 
+        case .performUIKitCollectionAction(let action):
+            onMain {
+                respond(.uiKitCollectionActionResult(self.engine.performUIKitCollectionAction(action)))
+            }
+
         case .highlight(let nodeID):
             onMain {
                 let ok = self.engine.highlight(nodeID: nodeID)

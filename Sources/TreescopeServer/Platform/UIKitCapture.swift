@@ -64,6 +64,136 @@ extension CaptureEngine {
             .sorted { $0.windowLevel.rawValue < $1.windowLevel.rawValue }
     }
 
+    func performUIKitCollectionAction(_ action: UIKitCollectionAction) -> UIKitCollectionActionResult {
+        switch action {
+        case .query(let identifier):
+            guard let collectionView = collectionView(identifier: identifier) else {
+                return missingCollectionResult(identifier: identifier)
+            }
+            collectionView.layoutIfNeeded()
+            return collectionResult(status: "found", identifier: identifier, collectionView: collectionView)
+
+        case .scroll(let identifier, let section, let item, let position):
+            guard let collectionView = collectionView(identifier: identifier) else {
+                return missingCollectionResult(identifier: identifier, section: section, item: item)
+            }
+            collectionView.layoutIfNeeded()
+
+            let sectionCount = collectionView.numberOfSections
+            guard section >= 0, section < sectionCount else {
+                return collectionResult(status: "sectionOutOfBounds",
+                                        identifier: identifier,
+                                        section: section,
+                                        item: item,
+                                        collectionView: collectionView,
+                                        message: "section \(section) is outside 0..<\(sectionCount)")
+            }
+
+            let itemCount = collectionView.numberOfItems(inSection: section)
+            guard item >= 0, item < itemCount else {
+                return collectionResult(status: "itemOutOfBounds",
+                                        identifier: identifier,
+                                        section: section,
+                                        item: item,
+                                        collectionView: collectionView,
+                                        itemCount: itemCount,
+                                        message: "item \(item) is outside 0..<\(itemCount)")
+            }
+
+            collectionView.scrollToItem(at: IndexPath(item: item, section: section),
+                                        at: collectionViewScrollPosition(position),
+                                        animated: false)
+            collectionView.layoutIfNeeded()
+            return collectionResult(status: "scrolled",
+                                    identifier: identifier,
+                                    section: section,
+                                    item: item,
+                                    collectionView: collectionView,
+                                    itemCount: itemCount)
+        }
+    }
+
+    private func collectionView(identifier: String) -> UICollectionView? {
+        for window in allWindows().reversed() {
+            if let collectionView = collectionView(identifier: identifier, in: window) {
+                return collectionView
+            }
+        }
+        return nil
+    }
+
+    private func collectionView(identifier: String, in view: UIView) -> UICollectionView? {
+        if let collectionView = view as? UICollectionView,
+           collectionView.accessibilityIdentifier == identifier {
+            return collectionView
+        }
+        for subview in view.subviews {
+            if let collectionView = collectionView(identifier: identifier, in: subview) {
+                return collectionView
+            }
+        }
+        return nil
+    }
+
+    private func missingCollectionResult(identifier: String, section: Int? = nil, item: Int? = nil) -> UIKitCollectionActionResult {
+        UIKitCollectionActionResult(status: "missingCollection",
+                                    identifier: identifier,
+                                    section: section,
+                                    item: item,
+                                    visibleCollectionIdentifiers: visibleCollectionIdentifiers())
+    }
+
+    private func collectionResult(status: String,
+                                  identifier: String,
+                                  section: Int? = nil,
+                                  item: Int? = nil,
+                                  collectionView: UICollectionView,
+                                  itemCount: Int? = nil,
+                                  message: String? = nil) -> UIKitCollectionActionResult {
+        UIKitCollectionActionResult(status: status,
+                                    identifier: identifier,
+                                    section: section,
+                                    item: item,
+                                    sectionCount: collectionView.numberOfSections,
+                                    itemCount: itemCount ?? section.map { collectionView.numberOfItems(inSection: $0) },
+                                    visibleItems: collectionView.indexPathsForVisibleItems
+                                        .sorted()
+                                        .map { UIKitCollectionItem(section: $0.section, item: $0.item) },
+                                    contentOffset: Point(x: Double(collectionView.contentOffset.x),
+                                                         y: Double(collectionView.contentOffset.y)),
+                                    contentSize: Size(width: Double(collectionView.contentSize.width),
+                                                      height: Double(collectionView.contentSize.height)),
+                                    visibleCollectionIdentifiers: visibleCollectionIdentifiers(),
+                                    message: message)
+    }
+
+    private func visibleCollectionIdentifiers() -> [String] {
+        allWindows().flatMap { collectionIdentifiers(in: $0) }
+    }
+
+    private func collectionIdentifiers(in view: UIView) -> [String] {
+        var identifiers: [String] = []
+        if let collectionView = view as? UICollectionView,
+           let identifier = collectionView.accessibilityIdentifier {
+            identifiers.append(identifier)
+        }
+        for subview in view.subviews {
+            identifiers.append(contentsOf: collectionIdentifiers(in: subview))
+        }
+        return identifiers
+    }
+
+    private func collectionViewScrollPosition(_ position: UIKitCollectionScrollPosition) -> UICollectionView.ScrollPosition {
+        switch position {
+        case .top: return .top
+        case .centeredVertically: return .centeredVertically
+        case .bottom: return .bottom
+        case .left: return .left
+        case .centeredHorizontally: return .centeredHorizontally
+        case .right: return .right
+        }
+    }
+
     private func captureView(_ view: UIView, window: UIWindow, options: HierarchyOptions,
                              path: String, depth: Int, suppressSwiftUI: Bool) -> ViewNode {
         let id = register(view)
